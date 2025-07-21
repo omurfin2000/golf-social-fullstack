@@ -1,5 +1,6 @@
 import Hamburger from "@/components/Hamburger";
 import Head from "@/components/Head";
+import MessageBox from "@/components/MessageBox";
 import { StyleSheet, Text, View, Dimensions } from "react-native";
 
 const windowWidth = Dimensions.get('window').width;
@@ -12,8 +13,10 @@ export default function messaging() {
             <Head />
         </View>
         <View style={styles.container}>
-            <Hamburger />
-            <Text>Message Box</Text>
+            <View>
+                <Hamburger />
+            </View>
+            <MessageBox />
         </View>
         </>
         
@@ -23,7 +26,7 @@ export default function messaging() {
 const styles = StyleSheet.create({
     container: {
         alignSelf: 'center',
-        flexDirection: 'row',
+        flexDirection: 'column',
         width: windowWidth < maxFeedWidth ? '100%' : 600,
         flex: 1,
         backgroundColor: '#d5deebff',
