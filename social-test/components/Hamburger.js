@@ -27,6 +27,12 @@ const Hamburger = () => {
           <TouchableOpacity onPress={() => router.push('/messaging')}>
             <Text style={styles.menuItem}>💬 Messages</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/addFriend')}>
+            <View style={styles.menuItem}>
+              <Ionicons name="add" size={28} color="black" />
+              <Text style={styles.menuItem}> Search Friends</Text>
+            </View>
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -45,9 +51,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
   },
   menuItem: {
+    flexDirection: 'row',
     paddingVertical: 8,
     fontSize: 16,
   },
 });
 
 export default Hamburger;
+
