@@ -9,41 +9,6 @@ import { supabase } from '@/utilities/Supabase';
 const windowWidth = Dimensions.get('window').width;
 const maxFeedWidth = 600;
 
-/*  Code for testing images stored locally
-
-const images = [  // require() loads in modules or files for use in the script
-    require('../assets/images/placeholders/pexels-gasparzaldo-32822356.jpg'),
-    require('../assets/images/placeholders/pexels-mary-rose-relente-722720629-31732868.jpg'),
-    require('../assets/images/placeholders/pexels-midori-344476677-16768648.jpg'),
-    require('../assets/images/placeholders/pexels-snapsbyclark-14790230.jpg'),
-    require('../assets/images/placeholders/pexels-svitlana-shakalova-1789851085-31709325.jpg'),
-    require('../assets/images/placeholders/pexels-work2survive-32817397.jpg'),
-]
-
-*/ 
-
-// In the future, run this function for all image URLs returned from a table search
-const images = [
-  '1.jpg',
-  '2.jpg',
-  '3.jpg',
-  '4.jpg'
-]
-
-const captions = [
-    "Nice Day",
-    "Bad Day :(",
-    "Pink",
-    "AHHHHHH"
-]
-
-/*
-const postData = images.map((img, index) => ({ // .map does a thing to each item of the array
-    id: index.toString(),
-    image: getImageUrl(img),
-    caption: captions[index] || "Oopsie Daisy"
-}));*/
-
 const Post = () => {
 
     const [postData, setPostData] = useState([])
