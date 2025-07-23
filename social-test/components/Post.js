@@ -1,13 +1,14 @@
 import { AntDesign } from '@expo/vector-icons';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Animated, Dimensions, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-
-
+// import { getImage } from '../utilities/getImage';
+import { getImageUrl } from '@/utilities/getImageUrl';
 
 
 const windowWidth = Dimensions.get('window').width;
 const maxFeedWidth = 600;
+
+/*  Code for testing images stored locally
 
 const images = [  // require() loads in modules or files for use in the script
     require('../assets/images/placeholders/pexels-gasparzaldo-32822356.jpg'),
@@ -18,6 +19,16 @@ const images = [  // require() loads in modules or files for use in the script
     require('../assets/images/placeholders/pexels-work2survive-32817397.jpg'),
 ]
 
+*/ 
+
+// In the future, run this function for all image URLs returned from a table search
+const images = [
+  '1.jpg',
+  '2.jpg',
+  '3.jpg',
+  '4.jpg'
+]
+
 const captions = [
     "Nice Day",
     "Bad Day :(",
@@ -25,15 +36,38 @@ const captions = [
     "AHHHHHH"
 ]
 
+/*
 const postData = images.map((img, index) => ({ // .map does a thing to each item of the array
     id: index.toString(),
-    image: img,
+    image: getImageUrl(img),
     caption: captions[index] || "Oopsie Daisy"
-}));
+}));*/
 
 const Post = () => {
 
+    const [postData, setPostData] = useState([])
     const [likedIds, setLikedIds] = useState({});
+
+    useEffect(() => {
+    const loadImages = async () => {
+      const enriched = await Promise.all(
+        images.map(async (img, index) => {
+          const url = await getImageUrl(img)
+          const id = index.toString()
+          scales[id] = new Animated.Value(1)
+          return {
+            id,
+            image: url,
+            caption: captions[index] || "Oopsie Daisy"
+          }
+        })
+      )
+
+      setPostData(enriched)
+    }
+
+    loadImages()
+    }, [])
 
     // Store animated values per post to avoid all hearts animating together
     const scales = useRef(postData.reduce((acc, post) => {
@@ -70,7 +104,12 @@ const Post = () => {
                     </TouchableOpacity>
                     <Text>Profile Name</Text>
                   </View>
-                  <Image source={item.image} style={styles.image} />
+                  
+                  {item.image ? (
+                    <Image source={{ uri: item.image }} style={styles.image} />
+                  ) : (
+                    <Text>Loading image...</Text>
+                  )}
                   
                   {/* Heart icon button */}
                   <TouchableOpacity
