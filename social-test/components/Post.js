@@ -3,6 +3,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Animated, Dimensions, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 // import { getImage } from '../utilities/getImage';
 import { getImageUrl } from '@/utilities/getImageUrl';
+import { supabase } from '@/utilities/Supabase';
 
 
 const windowWidth = Dimensions.get('window').width;
@@ -47,27 +48,45 @@ const Post = () => {
 
     const [postData, setPostData] = useState([])
     const [likedIds, setLikedIds] = useState({});
-
+    
     useEffect(() => {
-    const loadImages = async () => {
-      const enriched = await Promise.all(
-        images.map(async (img, index) => {
-          const url = await getImageUrl(img)
-          const id = index.toString()
-          scales[id] = new Animated.Value(1)
-          return {
-            id,
-            image: url,
-            caption: captions[index] || "Oopsie Daisy"
-          }
-        })
-      )
+      const loadPosts = async () => {
+        
+        const { data, error } = await supabase
+          .from('golfer_posts')
+          .select('caption, images')
+          .eq('golfer_id', 2);
 
-      setPostData(enriched)
-    }
+        if (error) {
+          console.error('Error fetching post data:', error);
+          return; // Exit early if there's an error
+        }
 
-    loadImages()
-    }, [])
+        if (!data) {
+          console.warn('No data returned from Supabase');
+          return;
+        }
+
+        const enriched = await Promise.all(
+          data.map(async (post, index) => {
+            console.log("Post image:", post.images);
+            console.log("Post caption:", post.caption);
+            const url = await getImageUrl(post.images[0]);
+            const id = index.toString();
+            scales[id] = new Animated.Value(1);
+            return {
+              id,
+              image: url,
+              caption: post.caption || "Oopsie Daisy"
+            };
+          })
+        );
+
+        setPostData(enriched);
+      };
+
+      loadPosts();
+    }, []); 
 
     // Store animated values per post to avoid all hearts animating together
     const scales = useRef(postData.reduce((acc, post) => {
