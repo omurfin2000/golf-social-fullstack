@@ -33,6 +33,12 @@ const Hamburger = () => {
               <Text style={styles.menuItem}> Search Friends</Text>
             </View>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/createPost')}>
+            <View style={styles.menuItem}> 
+              <Ionicons name="add" size={28} color="black" />
+              <Text style={styles.menuItem}> Create Post </Text>
+            </View>
+          </TouchableOpacity>
         </View>
       )}
     </View>

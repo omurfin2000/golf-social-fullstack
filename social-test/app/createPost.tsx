@@ -1,44 +1,61 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, Image, Button, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { uploadPost } from './api'; // You'll need to implement this
+import Hamburger from '@/components/Hamburger';
+import { useRouter } from 'expo-router';
+import addToBucket from '../utilities/addToBucket';
+import { supabase } from '@/utilities/Supabase';
 
-const CreatePostScreen = () => {
+export default function CreatePostScreen() {
+  const [image, setImage] = useState<string | null>(null);
+  const [imageFileName, setImageFileName] = useState<string | null | undefined>(null);
   const [caption, setCaption] = useState('');
-  const [image, setImage] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
+
+  const router = useRouter();
+
+  console.log('hrer')
 
   const pickImage = async () => {
-    // Request camera roll permissions
+
+    /*
+    // Ask for permission
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission required', 'Sorry, we need camera roll permissions to make this work!');
+      Alert.alert('Permission denied', 'We need camera roll permissions to select an image.');
       return;
-    }
+    } Docs say no permission is necessary */ 
 
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images', 'videos'],
+        allowsEditing: true,
+        aspect: [4,3],
+        quality: 1,
+      });
 
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      if (!result.canceled) {
+        setImageFileName(result.assets[0].fileName)
+        setImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.log(error)
     }
+    // Launch picker
+    
+
+    
   };
 
   const takePhoto = async () => {
-    // Request camera permissions
+    /*
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission required', 'Sorry, we need camera permissions to make this work!');
+      Alert.alert('Permission denied', 'We need camera permissions to take a photo.');
       return;
-    }
+    }*/
 
     let result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
-      aspect: [4, 3],
       quality: 1,
     });
 
@@ -47,125 +64,82 @@ const CreatePostScreen = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!image) {
-      Alert.alert('No image', 'Please select an image first');
+  const handlePost = async () => {
+    
+      
+    if (!image || !caption) { // Add Specific Error Handeling
+      console.log('no can do')
       return;
     }
 
-    if (isUploading) return;
-
-    setIsUploading(true);
     try {
-      await uploadPost(image, caption); // Implement this function
-      setCaption('');
-      setImage(null);
-      Alert.alert('Success', 'Your post has been uploaded!');
-      navigation.goBack(); // Return to previous screen
-    } catch (error) {
-      Alert.alert('Error', 'Failed to upload post. Please try again.');
-      console.error(error);
-    } finally {
-      setIsUploading(false);
+      let filePath = await addToBucket(image, imageFileName)
+      console.log(filePath)
+      const { error } = await supabase
+      .from('golfer_posts')
+      .insert({
+        golfer_id: 2, 
+        caption: caption,
+        images: [filePath]
+      })
+    } catch ( error ) {
+      console.log( error )
+      return;
     }
+
+    router.push('/')
+    
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Create New Post</Text>
-      
-      {image && (
-        <Image source={{ uri: image }} style={styles.previewImage} />
-      )}
-      
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={pickImage}>
-          <Text style={styles.buttonText}>Choose from Gallery</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.button} onPress={takePhoto}>
-          <Text style={styles.buttonText}>Take a Photo</Text>
-        </TouchableOpacity>
+      <View style = {{ flexDirection: 'column' }}>
+        <Hamburger />
       </View>
-      
+      <Text style={styles.title}>Create New Post</Text>
+
+      <TouchableOpacity onPress={pickImage} style={styles.button}>
+        <Text style={styles.buttonText}>Choose from Gallery</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={takePhoto} style={styles.button}>
+        <Text style={styles.buttonText}>Take Photo</Text>
+      </TouchableOpacity>
+
+      {image && <Image source={{ uri: image }} style={styles.image} />}
+
       <TextInput
-        style={styles.captionInput}
         placeholder="Write a caption..."
-        multiline
         value={caption}
         onChangeText={setCaption}
+        style={styles.captionInput}
+        multiline
       />
-      
-      <TouchableOpacity 
-        style={[styles.submitButton, isUploading && styles.disabledButton]} 
-        onPress={handleSubmit}
-        disabled={isUploading}
-      >
-        <Text style={styles.submitButtonText}>
-          {isUploading ? 'Uploading...' : 'Share Post'}
-        </Text>
+
+      <TouchableOpacity onPress={handlePost} style={styles.button}>
+        <Text style={styles.buttonText}>Upload Post</Text>
       </TouchableOpacity>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  previewImage: {
-    width: '100%',
-    height: 300,
-    borderRadius: 10,
-    marginBottom: 20,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
+  container: { padding: 20, flex: 1, backgroundColor: '#fff' },
+  title: { fontSize: 24, marginBottom: 20 },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#00aebaff',
     padding: 10,
-    borderRadius: 5,
-    width: '48%',
-    alignItems: 'center',
+    marginBottom: 10,
+    borderRadius: 8,
   },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
+  buttonText: { color: 'white', textAlign: 'center' },
+  image: { width: '100%', height: 200, marginVertical: 10, borderRadius: 10 },
   captionInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-    padding: 15,
-    marginBottom: 20,
-    minHeight: 100,
-    textAlignVertical: 'top',
-  },
-  submitButton: {
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 5,
-    alignItems: 'center',
-  },
-  disabledButton: {
-    backgroundColor: '#cccccc',
-  },
-  submitButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+    minHeight: 60,
   },
 });
-
-export default CreatePostScreen;
