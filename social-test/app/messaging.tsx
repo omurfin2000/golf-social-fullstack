@@ -3,11 +3,21 @@ import AddFriend from "@/components/AddFriend";
 import Head from "@/components/Head";
 import MessageBox from "@/components/MessageBox";
 import { StyleSheet, Text, View, Dimensions, Image, ScrollView } from "react-native";
+import { Redirect } from "expo-router";
+import { useAuth } from "@/utilities/AuthContext";
 
 const windowWidth = Dimensions.get('window').width;
 const maxFeedWidth = 600;
 
 export default function messaging() {
+    const { session, loading } = useAuth()
+
+    if (loading) return null;
+
+    if (!session) {
+        return <Redirect href='/Auth' />
+    }
+    
     return (
         <>
         <View style={{alignItems: 'center'}}>

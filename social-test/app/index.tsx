@@ -3,24 +3,18 @@ import { StyleSheet, View, Text } from "react-native";
 import Hamburger from "@/components/Hamburger";
 import Head from '../components/Head';
 import Post from '../components/Post';
-import { useEffect, useState } from "react";
-import Auth from "@/utilities/Auth";
-import { Session } from "@supabase/supabase-js";
-import { supabase } from "@/utilities/Supabase";
+import Auth from "@/components/Auth";
+import { useAuth } from "@/utilities/AuthContext";
+import { Redirect } from "expo-router";
 
 export default function Index() {
-  const [session, setSession] = useState<Session | null>(null)
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-    })
-
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-
-  }, [])
+  const { session, loading } = useAuth()
+  
+  if (loading) return null;
+  
+  if (!session) {
+      return <Redirect href='/Auth' />
+  }
   
   if(session) {
     return (

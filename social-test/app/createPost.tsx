@@ -2,11 +2,20 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Image, Button, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Hamburger from '@/components/Hamburger';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import addToBucket from '../utilities/addToBucket';
 import { supabase } from '@/utilities/Supabase';
+import { useAuth } from '@/utilities/AuthContext';
 
 export default function CreatePostScreen() {
+  const { session, loading } = useAuth()
+  
+  if (loading) return null;
+  
+  if (!session) {
+      return <Redirect href='/Auth' />
+  }
+  
   const [image, setImage] = useState<string | null>(null);
   const [imageFileName, setImageFileName] = useState<string | null | undefined>(null);
   const [caption, setCaption] = useState('');
