@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Image, Button, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Hamburger from '@/components/Hamburger';
 import { Redirect, useRouter } from 'expo-router';
@@ -9,16 +9,18 @@ import { useAuth } from '@/utilities/AuthContext';
 
 export default function CreatePostScreen() {
   const { session, loading } = useAuth()
+
+  const [image, setImage] = useState<string | null>(null);
+  const [imageFileName, setImageFileName] = useState<string | null | undefined>(null);
+  const [caption, setCaption] = useState('');
   
   if (loading) return null;
   
   if (!session) {
       return <Redirect href='/Auth' />
   }
+
   
-  const [image, setImage] = useState<string | null>(null);
-  const [imageFileName, setImageFileName] = useState<string | null | undefined>(null);
-  const [caption, setCaption] = useState('');
 
   const router = useRouter();
 
@@ -87,7 +89,7 @@ export default function CreatePostScreen() {
       const { error } = await supabase
       .from('golfer_posts')
       .insert({
-        golfer_id: 2, 
+        golfer_id: session.user.id, 
         caption: caption,
         images: [filePath]
       })

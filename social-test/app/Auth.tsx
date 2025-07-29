@@ -1,12 +1,22 @@
 import React, { useState } from 'react'
-import { Alert, StyleSheet, View } from 'react-native'
+import { Alert, StyleSheet, View, Text } from 'react-native'
 import { supabase } from '../utilities/Supabase';
 import { Button, Input } from '@rneui/themed';
+import { Redirect } from 'expo-router';
+import { useAuth } from '@/utilities/AuthContext';
 
 export default function Auth() {
+  const { session, loading } = useAuth()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
+
+  if (loading) return null
+  if (session) return <Redirect href="/" />
+  
+  
 
   async function signInWithEmail() {
     setLoading(true)
@@ -15,22 +25,25 @@ export default function Auth() {
       password: password,
     })
 
-    if (error) Alert.alert(error.message)
+    if (error) setMessage('Incorrect email or password.')
     setLoading(false)
   }
 
   async function signUpWithEmail() {
     setLoading(true)
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: email,
       password: password,
     })
 
-    if (error) Alert.alert(error.message)
-    if (!session) Alert.alert('Please check your inbox for email verification!')
+    if (error) {
+      setMessage(error.message)
+      setLoading(false)
+      return
+    }
+    if (!data.session) {
+      setMessage('Please check inbox for email verification.')
+    } 
     setLoading(false)
   }
 
@@ -58,10 +71,13 @@ export default function Auth() {
         />
       </View>
       <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Button title="Sign in" disabled={loading} onPress={() => signInWithEmail()} />
+        <Button title="Sign in" disabled={isLoading} onPress={() => signInWithEmail()} />
       </View>
       <View style={styles.verticallySpaced}>
-        <Button title="Sign up" disabled={loading} onPress={() => signUpWithEmail()} />
+        <Button title="Sign up" disabled={isLoading} onPress={() => signUpWithEmail()} />
+      </View>
+      <View style={styles.verticallySpaced}>
+        <Text>{message}</Text>
       </View>
     </View>
   )

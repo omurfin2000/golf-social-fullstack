@@ -6,39 +6,71 @@ import Post from '../components/Post';
 import Auth from "@/components/Auth";
 import { useAuth } from "@/utilities/AuthContext";
 import { Redirect } from "expo-router";
+import LogoutButton from "@/components/logoutButton";
+import { useEffect, useState } from "react";
+import { supabase } from "@/utilities/Supabase";
+import { getImageUrl } from "@/utilities/getImageUrl";
+
+type PostItem = {
+  id: string;
+  image: string | null;
+  caption: string;
+};
 
 export default function Index() {
   const { session, loading } = useAuth()
+  const [posts, setPosts] = useState<PostItem[]>([]);
   
-  if (loading) return null;
+  useEffect(() => {
+    const loadPosts = async () => {
+      if (loading) return null;
   
-  if (!session) {
-      return <Redirect href='/Auth' />
-  }
-  
-  if(session) {
-    return (
-      <>
-      <View style={styles.container}>
-        <View style={styles.sidebar}>
-          <Hamburger />
-        </View>
-        <View style={styles.header}>
-        <Head />
-        </View>
-        {session && session.user && <Text>{session.user.id}</Text>}
-        <Post />
-      </View></>
-    );
-  }
+      if (!session) {
+        return <Redirect href='/Auth' />
+      }
 
-  if (!session) {
-    return (
-      <View>
-        <Auth />
+      const { data, error } = await supabase 
+      .from('golfer_posts')
+      .select('caption, images, id')
+      .eq('golfer_id', session.user.id);
+
+      if (error){
+        console.warn(error);
+        return;
+      }
+      
+      const enriched: PostItem[] = await Promise.all(
+        data.map(async (post, index) => {
+          const url = await getImageUrl(post.images[0]);
+          return {
+            id: post.id || index.toString(),
+            image: url,
+            caption: post.caption || 'Oopsie Daisey',
+          };
+        })
+      )
+      setPosts(enriched);
+    }
+
+    loadPosts();
+  }, [session]);
+
+  
+
+  return (
+    <>
+    <View style={styles.container}>
+      <View style={styles.sidebar}>
+        <Hamburger />
+        <LogoutButton />
       </View>
-    )
-  }
+      <View style={styles.header}>
+      <Head />
+      </View>
+      {session && session.user && <Text>{session.user.id}</Text>}
+      <Post postData={posts}/>
+    </View></>
+  );
 }
 
 const styles = StyleSheet.create({
