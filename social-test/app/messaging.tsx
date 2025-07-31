@@ -5,7 +5,7 @@ import MessageBox from "@/components/MessageBox";
 import { StyleSheet, Text, View, Dimensions, Image, ScrollView } from "react-native";
 import { Redirect } from "expo-router";
 import { useAuth } from "@/utilities/AuthContext";
-import LogoutButton from '../components/logoutButton';
+import LogoutButton from '../components/LogoutButton';
 
 const windowWidth = Dimensions.get('window').width;
 const maxFeedWidth = 600;

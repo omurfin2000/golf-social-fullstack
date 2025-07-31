@@ -1,15 +1,27 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, Redirect } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import OwnUserInfo from '../utilities/ownUserInfo';
+import { useAuth } from '../utilities/AuthContext';
 
 const Hamburger = () => {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
+  const { session, loading } = useAuth()
+    
+    if (loading) return null;
+    
+    if (!session) {
+        return <Redirect href='/Auth' />
+    }
+
+
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
+
 
   return (
     <View>
@@ -27,7 +39,7 @@ const Hamburger = () => {
           <TouchableOpacity onPress={() => router.push('/messaging')}>
             <Text style={styles.menuItem}>💬 Messages</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/addFriend')}>
+          <TouchableOpacity onPress={() => router.push('/searchUsers')}>
             <View style={styles.menuItem}>
               <Ionicons name="add" size={28} color="black" />
               <Text style={styles.menuItem}> Search Friends</Text>
@@ -38,6 +50,12 @@ const Hamburger = () => {
               <Ionicons name="add" size={28} color="black" />
               <Text style={styles.menuItem}> Create Post </Text>
             </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push({
+              pathname: '/viewProfile',
+              params: { userId: session.user.id },
+          })}>
+            <Text style={styles.menuItem}> Your Profile </Text>
           </TouchableOpacity>
         </View>
       )}

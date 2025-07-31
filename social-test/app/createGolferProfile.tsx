@@ -7,36 +7,30 @@ import addToBucket from '../utilities/addToBucket';
 import { supabase } from '@/utilities/Supabase';
 import { useAuth } from '@/utilities/AuthContext';
 
-export default function CreatePostScreen() {
+export default function CreateGolferProfile() {
   const { session, loading } = useAuth()
 
   const [image, setImage] = useState<string | null>(null);
   const [imageFileName, setImageFileName] = useState<string | null | undefined>(null);
-  const [caption, setCaption] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [bio, setBio] = useState('');
+  const [handicap, setHandicap] = useState('');
   
   if (loading) return null;
   
   if (!session) {
       return <Redirect href='/Auth' />
-  }  
+  }
 
   const router = useRouter();
 
   const pickImage = async () => {
 
-    /*
-    // Ask for permission
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission denied', 'We need camera roll permissions to select an image.');
-      return;
-    } Docs say no permission is necessary */ 
-
     try {
       let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images', 'videos'],
+        mediaTypes: ['images'],
         allowsEditing: true,
-        aspect: [4,3],
+        aspect: [1,1],
         quality: 1,
       });
 
@@ -47,7 +41,10 @@ export default function CreatePostScreen() {
     } catch (error) {
       console.log(error)
     }
-        
+    // Launch picker
+    
+
+    
   };
 
   const takePhoto = async () => {
@@ -71,7 +68,7 @@ export default function CreatePostScreen() {
   const handlePost = async () => {
     
       
-    if (!image || !caption) { // Add Specific Error Handeling
+    if (!image || !bio || !handicap || !displayName) { // Add Specific Error Handeling
       console.log('no can do')
       return;
     }
@@ -80,10 +77,12 @@ export default function CreatePostScreen() {
       let filePath = await addToBucket(image, imageFileName)
       console.log(filePath)
       const { error } = await supabase
-      .from('golfer_posts')
+      .from('golfers')
       .insert({
-        caption: caption,
-        images: [filePath]
+        display_name: displayName,
+        images: [filePath],
+        bio: bio, 
+        handicap: handicap
       })
     } catch ( error ) {
       console.log( error )
@@ -99,7 +98,7 @@ export default function CreatePostScreen() {
       <View style = {{ flexDirection: 'column' }}>
         <Hamburger />
       </View>
-      <Text style={styles.title}>Create New Post</Text>
+      <Text style={styles.title}>Create New Profile</Text>
 
       <TouchableOpacity onPress={pickImage} style={styles.button}>
         <Text style={styles.buttonText}>Choose from Gallery</Text>
@@ -111,13 +110,28 @@ export default function CreatePostScreen() {
 
       {image && <Image source={{ uri: image }} style={styles.image} />}
 
+      <TextInput 
+        placeholder='Enter display name here' 
+        value={displayName}
+        onChangeText={setDisplayName}
+        style={styles.captionInput}
+        />
+
       <TextInput
-        placeholder="Write a caption..."
-        value={caption}
-        onChangeText={setCaption}
+        placeholder="Write a bio..."
+        value={bio}
+        onChangeText={setBio}
         style={styles.captionInput}
         multiline
       />
+
+      <TextInput
+        placeholder='Enter your handicap here'
+        value={handicap}
+        onChangeText={setHandicap}
+        style={styles.captionInput}
+      />
+      
 
       <TouchableOpacity onPress={handlePost} style={styles.button}>
         <Text style={styles.buttonText}>Upload Post</Text>

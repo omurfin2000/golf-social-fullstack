@@ -5,8 +5,8 @@ import Head from '../components/Head';
 import Post from '../components/Post';
 import Auth from "@/components/Auth";
 import { useAuth } from "@/utilities/AuthContext";
-import { Redirect } from "expo-router";
-import LogoutButton from "@/components/logoutButton";
+import { router } from "expo-router";
+import LogoutButton from "@/components/LogoutButton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/utilities/Supabase";
 import { getImageUrl } from "@/utilities/getImageUrl";
@@ -20,13 +20,41 @@ type PostItem = {
 export default function Index() {
   const { session, loading } = useAuth()
   const [posts, setPosts] = useState<PostItem[]>([]);
+
+  useEffect (() => {
+    const isUser = async () => {
+      if (loading) return null;
+  
+      if (!session) {
+        return;
+      }
+
+      const { data, error } = await supabase
+      .from('golfers')
+      .select('*')
+      .eq('accounts_id', session.user.id)
+
+      if (error) {
+        console.warn(error)
+        return;
+      }
+
+      if (!data[0]) {
+        router.push('/createGolferProfile')
+      }
+
+      console.log(!data[0])
+
+    }
+    isUser();
+  }, [session]);
   
   useEffect(() => {
     const loadPosts = async () => {
       if (loading) return null;
   
       if (!session) {
-        return <Redirect href='/Auth' />
+        return;
       }
 
       const { data, error } = await supabase 
@@ -55,7 +83,11 @@ export default function Index() {
     loadPosts();
   }, [session]);
 
+  if (loading) return null;
   
+  if (!session) {
+    return;
+  }  
 
   return (
     <>
