@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, Redirect } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import OwnUserInfo from '../utilities/ownUserInfo';
 import { useAuth } from '../utilities/AuthContext';
 
 const Hamburger = () => {
@@ -42,7 +41,7 @@ const Hamburger = () => {
           <TouchableOpacity onPress={() => router.push('/searchUsers')}>
             <View style={styles.menuItem}>
               <Ionicons name="add" size={28} color="black" />
-              <Text style={styles.menuItem}> Search Friends</Text>
+              <Text style={styles.menuItem}> Search Users</Text>
             </View>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/createPost')}>

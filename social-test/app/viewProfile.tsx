@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Text, StyleSheet, Image, ScrollView, View } from 'react-native';
-import { Card } from '@rneui/themed';
+import { Card, Button } from '@rneui/themed';
 import Hamburger from '@/components/Hamburger';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/utilities/Supabase';
 import { getImageUrl } from '@/utilities/getImageUrl';
+import { useAuth } from '@/utilities/AuthContext';
 
 type Golfer = {
   displayName: string;
@@ -17,9 +18,17 @@ export default function ProileScreen() {
 
     const { userId } = useLocalSearchParams();
     const [golferInfo, setGolferInfo] = useState<Golfer | null>(null)
+    const { session, loading } = useAuth()
+    
 
     useEffect(() => {
         const userInfo = async () => {
+          if (loading) return null;
+
+          if (!session) {
+            return <Redirect href='/Auth' />
+          }
+          
             const { data, error } = await supabase
             .from('golfers')
             .select('*')
@@ -48,7 +57,23 @@ export default function ProileScreen() {
         userInfo()
     }, []) 
 
-    console.log(golferInfo?.displayName)
+    const handleFollow = async () => {
+      try {
+        const { data, error } = await
+        supabase
+          .from('golfer_follows')
+          .insert([
+            { 'followed_golfer_id': userId,
+              'following_golfer_id': session?.user.id,
+            }
+          ])
+          .select()
+          console.log(data)
+      } catch (error) {
+        console.log(error);
+      }
+      router.push('/')
+    }
 
     return (
         <View>
@@ -82,6 +107,8 @@ export default function ProileScreen() {
                 <Text style={styles.label}>Posts</Text>
                 <Text style={styles.placeholder}>User's posts will appear here.</Text>
             </Card>
+
+            <Button title={"Follow"} onPress={handleFollow} />
         </ScrollView>
         </View>
     )  

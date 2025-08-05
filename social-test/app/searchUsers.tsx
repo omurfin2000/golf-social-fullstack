@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, TextInput, FlatList, Text, TouchableOpacity } from 'react-native';
 import { supabase } from '../utilities/Supabase';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import Hamburger from '@/components/Hamburger';
+import { useAuth } from '@/utilities/AuthContext';
 
 type Golfer = {
     accounts_id: string;
@@ -17,11 +18,22 @@ export default function SearchUsers() {
   const [results, setResults] = useState<Golfer[]>([]);
   const router = useRouter();
 
+  const { session, loading } = useAuth()
+      
+  if (loading) return null;
+      
+  if (!session) {
+    return <Redirect href='/Auth' />
+  };
+
   const searchGolfers = async () => {
+    console.log(session.user.id)
     const { data, error } = await supabase
       .from('golfers')
       .select('accounts_id, display_name, bio, images, handicap')
-      .ilike('display_name', `%${query}%`); // case-insensitive match
+      .ilike('display_name', `%${query}%`)
+      .neq('accounts_id', session.user.id) // Don't show self in user search
+      
 
     if (error) {
       console.error(error);
