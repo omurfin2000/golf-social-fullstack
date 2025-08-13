@@ -13,6 +13,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<SessionType>(null)
   const [loading, setLoading] = useState(true)
 
+  console.log('HEHERHEHE')
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Error getting session:', error);
+      } else {
+        console.log('Current session:', data.session);
+      }
+    };
+
+    checkSession();
+  }, []);
+
+
   useEffect(() => {
     const init = async () => {
       const { data } = await supabase.auth.getSession()

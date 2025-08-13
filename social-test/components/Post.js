@@ -5,7 +5,16 @@ import { Animated, Dimensions, FlatList, Image, StyleSheet, Text, TouchableOpaci
 import { getImageUrl } from '@/utilities/getImageUrl';
 import { supabase } from '@/utilities/Supabase';
 
-
+/*
+type PostItem = {
+  post_id: string;
+  golfer_name: string;
+  created_at: Date;
+  golfer_id: string;
+  images: string[0] | null;
+  caption: string;
+};
+*/
 
 const windowWidth = Dimensions.get('window').width;
 const maxFeedWidth = 600;
@@ -48,11 +57,11 @@ const Post = ({ postData }) => {
                     <TouchableOpacity>
                       <Image source={require('../assets/images/placeholders/profile_pic.jpg')} style={styles.posterPicture} />
                     </TouchableOpacity>
-                    <Text>Profile Name</Text>
+                    <Text>{ item.golfer_name }</Text>
                   </View>
                   
-                  {item.image ? (
-                    <Image source={{ uri: item.image }} style={styles.image} />
+                  {item.images ? (
+                    <Image source={{ uri: item.images }} style={styles.image} />
                   ) : (
                     <Text>Loading image...</Text>
                   )}

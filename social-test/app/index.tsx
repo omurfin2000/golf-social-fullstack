@@ -5,19 +5,27 @@ import Head from '../components/Head';
 import Post from '../components/Post';
 import Auth from "@/components/Auth";
 import { useAuth } from "@/utilities/AuthContext";
-import { router } from "expo-router";
+import { Redirect, router } from "expo-router";
 import LogoutButton from "@/components/LogoutButton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/utilities/Supabase";
 import { getImageUrl } from "@/utilities/getImageUrl";
 
 type PostItem = {
-  id: string;
-  image: string | null;
+  post_id: string;
+  golfer_name: string;
+  created_at: Date;
+  golfer_id: string;
+  images: string | null;
   caption: string;
 };
 
+interface RpcArgs {
+  user_id: string;
+}
+
 export default function Index() {
+  
   const { session, loading } = useAuth()
   const [posts, setPosts] = useState<PostItem[]>([]);
 
@@ -26,7 +34,7 @@ export default function Index() {
       if (loading) return null;
   
       if (!session) {
-        return;
+        return <Redirect href='/Auth' />
       }
 
       const { data, error } = await supabase
@@ -57,6 +65,7 @@ export default function Index() {
         return;
       }
 
+      /*
       const { data, error } = await supabase 
       .from('golfer_posts')
       .select('caption, images, id')
@@ -65,20 +74,40 @@ export default function Index() {
       if (error){
         console.warn(error);
         return;
-      }
-      
+      } */
+
+      const user_id = session.user.id
+
+      console.log(user_id)
+
+      let { data, error } = await supabase
+        .rpc('get_followed_posts', { 
+          user_id
+        }) as { data: PostItem[] | null; error: any};
+
+      if (error) {
+        console.error(error);
+        return;
+      } 
+
       const enriched: PostItem[] = await Promise.all(
-        data.map(async (post, index) => {
-          const url = await getImageUrl(post.images[0]);
+        (data ?? []).map(async (post, index) => {
+          console.log(post.images![0])
+          const url = await getImageUrl(post.images![0]);
           return {
-            id: post.id || index.toString(),
-            image: url,
+            post_id: post.post_id || index.toString(),
+            images: url,
             caption: post.caption || 'Oopsie Daisey',
+            golfer_name: post.golfer_name,
+            created_at: post.created_at,
+            golfer_id: post.golfer_id
           };
         })
       )
       setPosts(enriched);
     }
+
+    
 
     loadPosts();
   }, [session]);
@@ -99,7 +128,6 @@ export default function Index() {
       <View style={styles.header}>
       <Head />
       </View>
-      {session && session.user && <Text>{session.user.id}</Text>}
       <Post postData={posts}/>
     </View></>
   );
